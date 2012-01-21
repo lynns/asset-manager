@@ -1,0 +1,51 @@
+# asset-manager
+
+Extension of the connect-asset library that allows you to declare multiple asset folders that will be searched when
+resolving static assets in your app.  This library also provides the ability to precompile all of the static assets
+into their production form.  The precompile step generates a manifest file that will be used in production to resolve
+requested assets.
+
+Note: Consuming the manifest file in production still needs to be implemented.
+
+## How?
+
+First, install it in your project's directory:
+
+    npm install asset-manager
+
+Then add this line to your app's configuration:
+
+    var assetManager = require('asset-manager')
+
+Finally, initialize the manager with the paths it should search for static assets:
+
+    assetManager.init({
+        paths: ["assets", "../global/assets", "vendor")]
+      }, callback);
+
+### Markup functions
+
+`connect-assets` provides three global functions named `img`, `js`, and `css`. Use them in your views. They tell connect-assets to do any necessary compilation, then return the markup you need. For instance, in a [Jade template](http://jade-lang.com/), the code
+
+    != css('normalize')
+    != js('jquery')
+    != img('icon')
+
+See [connect-asset](http://github.com/TrevorBurnham/connect-asset) for more information.
+
+### Precompile assets
+
+You can precompile your assets into their production form as follows:
+
+  assetManager.precompile({
+      paths: ["assets", "../global/assets", "vendor")]
+    }, callback);
+
+## Options
+
+If you like, you can pass any of these options to the `init` function:
+
+* `paths` (required): An array of paths that should be used to find static assets.
+* `inProd` (defaults to `false`): Indicates whether the application is running in production mode or not. 
+* `use` (defaults to null): The `use` function from express that is used to inject connect-asset as middleware
+* `servePath` (defaults to ''): The path you want to append to all asset urls.  Useful for pointing at an external CDN location.

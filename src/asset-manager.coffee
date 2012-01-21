@@ -32,6 +32,7 @@ init = (config, cb) ->
     cb() if cb
   
 precompile = (config, cb) ->
+  config.inProd = true
   init config, () ->
     options = stat: true, strict: true
 
