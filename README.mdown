@@ -31,7 +31,7 @@ Finally, initialize the manager with the paths it should search for static asset
     != js('jquery')
     != img('icon')
 
-See [connect-asset](http://github.com/TrevorBurnham/connect-asset) for more information.
+See [connect-assets](http://github.com/TrevorBurnham/connect-assets) for more information.
 
 ### Precompile assets
 
