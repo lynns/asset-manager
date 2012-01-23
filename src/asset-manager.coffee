@@ -3,6 +3,7 @@ assets    = require 'connect-assets'
 glob      = require 'glob'
 fs        = require 'fs'
 path      = require 'path'
+rimraf    = require 'rimraf'
 
 MANIFEST_NAME = 'manifest.json'
 builtAssets = ''
@@ -61,29 +62,34 @@ init = (config, cb) ->
   
 precompile = (config, cb) ->
   config.inProd = true
-  init config, () ->
-    options = stat: true, strict: true
+  builtAssets = config.builtAssets ? 'builtAssets'
+  
+  # Remove any previous 'builtAssets'
+  rimraf builtAssets, () ->
+    # Initialize the asset-manager and resolve all of the assets
+    init config, () ->
+      options = stat: true, strict: true
 
-    pattern = '**/*.*'
-    fullPattern = paths.join("/#{pattern},") + "/#{pattern}"
+      pattern = '**/*.*'
+      fullPattern = paths.join("/#{pattern},") + "/#{pattern}"
 
-    glob "{#{fullPattern}}", options, (er, files) ->
-      if er
-        console.log "Error: #{er}"
-        return
+      glob "{#{fullPattern}}", options, (er, files) ->
+        if er
+          console.log "Error: #{er}"
+          return
 
-      manifest = {}
-      async.map files, extractRequestPaths, (err, pathDetails) ->
-        for pathDetail in pathDetails
-          pathDetail.output = global[pathDetail.type](pathDetail.requested)
-          manifest[pathDetail.requested] = pathDetail
+        manifest = {}
+        async.map files, extractRequestPaths, (err, pathDetails) ->
+          for pathDetail in pathDetails
+            pathDetail.output = global[pathDetail.type](pathDetail.requested)
+            manifest[pathDetail.requested] = pathDetail
 
-        # Write manifest file to `builtAssets` directory
-        if not path.existsSync(builtAssets)
-          fs.mkdirSync builtAssets, 0755
-        fs.writeFileSync manifestLocation(), JSON.stringify(manifest)
-    
-        cb() if cb
+          # Write manifest file to `builtAssets` directory
+          if not path.existsSync(builtAssets)
+            fs.mkdirSync builtAssets, 0755
+          fs.writeFileSync manifestLocation(), JSON.stringify(manifest)
+
+          cb() if cb
       
 # Public exports
 module.exports.init = init
