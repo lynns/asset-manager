@@ -8,11 +8,11 @@ rimraf    = require 'rimraf'
 MANIFEST_NAME = 'manifest.json'
 builtAssets = ''
 paths = []
-resolvers = []
 manifest = {}
 
 init = (config, cb) ->
   builtAssets = config.builtAssets ? 'builtAssets'
+  context = config.context ? global
 
   # Production mode with manifest will only refer to manifest file for resolving
   # asset requests to the appropriate markup/string.  Assumes that an external
@@ -23,9 +23,9 @@ init = (config, cb) ->
     fs.readFile manifestLocation(), 'utf8', (err, jsonFile) ->
       manifest = JSON.parse jsonFile
       
-      global.js = global.img = resolveInManifest
+      context.js = context.img = resolveInManifest
         
-      global.css = (route) ->
+      context.css = (route) ->
         details = extractMediaType route
         
         output = resolveInManifest details.filePath
@@ -38,6 +38,7 @@ init = (config, cb) ->
       cb() if cb
     
   else 
+    resolvers = []
     expandPaths config.paths, () ->
       # Output the paths that will be checked when resolving assets
       console.log "Asset Resolution Paths:"
@@ -55,14 +56,15 @@ init = (config, cb) ->
         config.use(mw) if config.use
         resolvers.push resolver
 
-      global.css = resolveCSS()
-      global.js = resolveAsset 'js'
-      global.img = resolveAsset 'img'
+      context.css = resolveCSS(resolvers)
+      context.js = resolveAsset 'js', resolvers
+      context.img = resolveAsset 'img', resolvers
       cb() if cb
   
 precompile = (config, cb) ->
   config.inProd = true
   builtAssets = config.builtAssets ? 'builtAssets'
+  context = config.context ? global
   
   # Remove any previous 'builtAssets'
   rimraf builtAssets, () ->
@@ -81,7 +83,7 @@ precompile = (config, cb) ->
         manifest = {}
         async.map files, extractRequestPaths, (err, pathDetails) ->
           for pathDetail in pathDetails
-            pathDetail.output = global[pathDetail.type](pathDetail.requested)
+            pathDetail.output = context[pathDetail.type](pathDetail.requested)
             manifest[pathDetail.requested] = pathDetail
 
           # Write manifest file to `builtAssets` directory
@@ -130,7 +132,7 @@ expandPath = (path, cb) ->
     cb null, files
 
 # Path route through resolution chain for the specific type of asset
-resolveAsset = (assetType) ->
+resolveAsset = (assetType, resolvers) ->
   (route) ->
     for resolver in resolvers
       try
@@ -142,8 +144,8 @@ resolveAsset = (assetType) ->
 
 # Allow people to pass either a filename that refers directly to a css file or an object that has a key which is the
 # media target of the stylesheet and a value which is the filename of the css file.
-resolveCSS = ->
-  cssResolver = resolveAsset 'css'
+resolveCSS = (resolvers) ->
+  cssResolver = resolveAsset 'css', resolvers
   (route) ->
     details = extractMediaType route
     cssLink = cssResolver details.filePath

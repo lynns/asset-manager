@@ -11,6 +11,9 @@
     , "glob": ">=3.0.1"
     , "rimraf": ">=1.0.9"
   },
+  "devDependencies": {
+    "vows": "0.6.0"
+  },
   "main": "lib/asset-manager.js",
   "engines": { "node": "= 0.4.7" },
   "contributors": [
