@@ -4,32 +4,60 @@ glob      = require 'glob'
 fs        = require 'fs'
 path      = require 'path'
 
+MANIFEST_NAME = 'manifest.json'
 builtAssets = ''
 paths = []
 resolvers = []
+manifest = {}
 
 init = (config, cb) ->
   builtAssets = config.builtAssets ? 'builtAssets'
-  
-  expandPaths config.paths, () ->
-    console.log "Asset Resolution Paths:"
-    console.dir paths
-    for path in paths
-      resolver = 'path': path
-      mw = assets
-        src: resolver.path
-        build: config.inProd ? false
-        helperContext: resolver
-        buildDir: builtAssets
-        servePath: config.servePath ? ''
 
-      config.use(mw) if config.use
-      resolvers.push resolver
+  # Production mode with manifest will only refer to manifest file for resolving
+  # asset requests to the appropriate markup/string.  Assumes that an external
+  # CDN (or equivalent) will actually be serving the asset files.
+  if config.inProd and path.existsSync(manifestLocation())
+    console.log "Resolve assets using the manifest file: #{manifestLocation()}"
+    
+    fs.readFile manifestLocation(), 'utf8', (err, jsonFile) ->
+      manifest = JSON.parse jsonFile
+      
+      global.js = global.img = resolveInManifest
+        
+      global.css = (route) ->
+        details = extractMediaType route
+        
+        output = resolveInManifest details.filePath
+        
+        if output.length isnt 0 and details.mediaType isnt 'all'
+          output = output.replace "media='all'", "media='#{details.mediaType}'"
+          
+        return output
+        
+      cb() if cb
+    
+  else 
+    expandPaths config.paths, () ->
+      # Output the paths that will be checked when resolving assets
+      console.log "Asset Resolution Paths:"
+      console.dir paths
 
-    global.css = extractMediaType()
-    global.js = resolveAsset 'js'
-    global.img = resolveAsset 'img'
-    cb() if cb
+      for path in paths
+        resolver = 'path': path
+        mw = assets
+          src: resolver.path
+          build: config.inProd ? false
+          helperContext: resolver
+          buildDir: builtAssets
+          servePath: config.servePath ? ''
+
+        config.use(mw) if config.use
+        resolvers.push resolver
+
+      global.css = resolveCSS()
+      global.js = resolveAsset 'js'
+      global.img = resolveAsset 'img'
+      cb() if cb
   
 precompile = (config, cb) ->
   config.inProd = true
@@ -53,7 +81,7 @@ precompile = (config, cb) ->
         # Write manifest file to `builtAssets` directory
         if not path.existsSync(builtAssets)
           fs.mkdirSync builtAssets, 0755
-        fs.writeFileSync "#{builtAssets}/manifest.json", JSON.stringify(manifest)
+        fs.writeFileSync manifestLocation(), JSON.stringify(manifest)
     
         cb() if cb
       
@@ -62,6 +90,18 @@ module.exports.init = init
 module.exports.precompile = precompile
 
 # Local Helpers
+manifestLocation = () ->
+  return "#{builtAssets}/#{MANIFEST_NAME}"
+
+resolveInManifest = (route) ->
+  entry = manifest[route]
+
+  if not entry
+    console.error "Cannot resolve '#{route}' in production manifest file."
+    return ''
+
+  return entry.output
+  
 # Given a list of paths that may contain globs, resolve the globs and set the `paths` to be an array
 # of all the actual paths that `origPaths` expands to
 expandPaths = (origPaths, cb) ->
@@ -96,21 +136,25 @@ resolveAsset = (assetType) ->
 
 # Allow people to pass either a filename that refers directly to a css file or an object that has a key which is the
 # media target of the stylesheet and a value which is the filename of the css file.
-extractMediaType = ->
+resolveCSS = ->
   cssResolver = resolveAsset 'css'
   (route) ->
-    mediaType = 'all'
-    filePath = route
+    details = extractMediaType route
+    cssLink = cssResolver details.filePath
+    return cssLink.replace '>', " media='#{details.mediaType}'>"
 
-    if typeof route isnt 'string'
-      for mt, path of route
-        mediaType = mt
-        filePath = path
+extractMediaType = (route) ->
+  details = 
+    mediaType: 'all'
+    filePath: route
 
-    cssLink = cssResolver filePath
-
-    return cssLink.replace '>', " media='#{mediaType}'>"
-
+  if typeof route isnt 'string'
+    for mt, path of route
+      details.mediaType = mt
+      details.filePath = path
+  
+  return details
+  
 # Given a filesystem path, extract the path that would actually be requested by a template
 extractRequestPaths = (file, cb) ->
   for path in paths
