@@ -15,7 +15,7 @@
     "vows": "0.6.0"
   },
   "main": "lib/asset-manager.js",
-  "engines": { "node": "= 0.4.7" },
+  "engines": { "node": ">= 0.4.7" },
   "contributors": [
       "Tim Shadel <tim.shadel@familysearch.org>"
     , "Stephen Lynn <s.lynn@familysearch.org>"
