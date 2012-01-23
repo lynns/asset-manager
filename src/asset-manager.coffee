@@ -90,7 +90,7 @@ precompile = (config, cb) ->
           if not path.existsSync(builtAssets)
             fs.mkdirSync builtAssets, 0755
           fs.writeFileSync manifestLocation(), JSON.stringify(manifest)
-
+          
           cb() if cb
       
 # Public exports
