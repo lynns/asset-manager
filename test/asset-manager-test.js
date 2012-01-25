@@ -51,6 +51,12 @@ vows.describe('asset-manager')
 
         'can override file resolution by naming file same thing': function () {
           assert.equal(dev.css("app2Override.css"), "<link rel='stylesheet' href='/css/app2Override.css' media='all'>");
+        },
+
+        'can pass in absolute urls': function () {
+          assert.equal(dev.img("http://my.abs.path/abs.png"), "http://my.abs.path/abs.png");
+          assert.equal(dev.js("http://my.abs.path/abs.js"), "<script src='http://my.abs.path/abs.js'></script>");
+          assert.equal(dev.css("http://my.abs.path/abs.css"), "<link href='http://my.abs.path/abs.css' rel='stylesheet' media='all'>");
         }
       }
     },
@@ -88,6 +94,12 @@ vows.describe('asset-manager')
 
         'can override file resolution by naming file same thing': function () {
           assert.equal(prod.css("app2Override.css"), "<link rel='stylesheet' href='/css/app2Override-5de5d96438a417e677a5a7d6b849423f.css' media='all'>");
+        },
+
+        'can pass in absolute urls': function () {
+          assert.equal(prod.img("http://my.abs.path/abs.png"), "http://my.abs.path/abs.png");
+          assert.equal(prod.js("http://my.abs.path/abs.js"), "<script src='http://my.abs.path/abs.js'></script>");
+          assert.equal(prod.css("http://my.abs.path/abs.css"), "<link href='http://my.abs.path/abs.css' rel='stylesheet' media='all'>");
         }
       }
     },
@@ -129,7 +141,7 @@ vows.describe('asset-manager')
         },
       
       
-        'Serve Precompiled Assets': {
+        'Serve Precompiled Assets from manifest.json': {
           'with multiple app folders': {
             topic: function() {
               assetManager.init({
@@ -159,6 +171,12 @@ vows.describe('asset-manager')
               assert.equal(prod3.img("arrow3.png"), "/img/arrow3-d41d8cd98f00b204e9800998ecf8427e.png");
               assert.equal(prod3.js("app3.js"), "<script src='/js/app3-29b858db32acb754b5a863b899c58d4d.js'></script>");
               assert.equal(prod3.css("app3.css"), "<link rel='stylesheet' href='/css/app3-fcdce6b6d6e2175f6406869882f6f1ce.css' media='all'>");
+            },
+
+            'can pass in absolute urls': function () {
+              assert.equal(prod3.img("http://my.abs.path/abs.png"), "http://my.abs.path/abs.png");
+              assert.equal(prod3.js("http://my.abs.path/abs.js"), "<script src='http://my.abs.path/abs.js'></script>");
+              assert.equal(prod3.css("http://my.abs.path/abs.css"), "<link href='http://my.abs.path/abs.css' rel='stylesheet' media='all'>");
             }
           }
         }

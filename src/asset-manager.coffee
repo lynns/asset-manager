@@ -102,6 +102,13 @@ manifestLocation = () ->
   return "#{builtAssets}/#{MANIFEST_NAME}"
 
 resolveInManifest = (route) ->
+  if route.indexOf('http') is 0
+    assetType = route.substr(route.lastIndexOf('.') + 1)
+    absOutput = getAbsTemplate(assetType)(route)
+    if assetType is 'css'
+      absOutput = absOutput.replace '>', " media='all'>"
+    return absOutput
+      
   entry = manifest[route]
 
   if not entry
@@ -131,9 +138,22 @@ expandPath = (path, cb) ->
   glob path, {stat: true, strict: true}, (er, files) ->
     cb null, files
 
+getAbsTemplate = (assetType) ->
+  if assetType is 'js'
+    return (route) -> return "<script src=\'#{route}\'></script>"
+  else if assetType is 'css'
+    return (route) -> return "<link href=\'#{route}\' rel=\'stylesheet\'>"
+  return (route) -> return "#{route}"
+
 # Path route through resolution chain for the specific type of asset
 resolveAsset = (assetType, resolvers) ->
+  absTemplate = getAbsTemplate assetType
+  
   (route) ->
+    # return absolute paths right away
+    if route.indexOf('http') is 0
+      return absTemplate route
+      
     for resolver in resolvers
       try
         return resolver[assetType] route
