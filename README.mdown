@@ -47,5 +47,5 @@ If you like, you can pass any of these options to the `init` function:
 
 * `paths` (required): An array of paths that should be used to find static assets.
 * `inProd` (defaults to `false`): Indicates whether the application is running in production mode or not. 
-* `use` (defaults to null): The `use` function from express that is used to inject connect-asset as middleware
+* `app` (defaults to null): The `app` from your express.createServer call that is used to inject connect-asset as middleware
 * `servePath` (defaults to ''): The path you want to append to all asset urls.  Useful for pointing at an external CDN location.

@@ -53,7 +53,7 @@ init = (config, cb) ->
           buildDir: builtAssets
           servePath: config.servePath ? ''
 
-        config.use(mw) if config.use
+        config.app.use(mw) if config.app
         resolvers.push resolver
 
       context.css = resolveCSS(resolvers)
