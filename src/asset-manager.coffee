@@ -84,6 +84,11 @@ precompile = (config, cb) ->
         async.map files, extractRequestPaths, (err, pathDetails) ->
           for pathDetail in pathDetails
             pathDetail.output = context[pathDetail.type](pathDetail.requested)
+            extension = pathDetail.requested.substr(pathDetail.requested.lastIndexOf('.') + 1)
+            if match = pathDetail.output.match "#{pathDetail.type}.*\-([0-9a-f]{32})\.#{extension}"
+              pathDetail.relativePath = match[0] 
+              pathDetail.fingerprint = match[1]
+
             manifest[pathDetail.requested] = pathDetail
 
           # Write manifest file to `builtAssets` directory
@@ -187,10 +192,10 @@ extractMediaType = (route) ->
 extractRequestPaths = (file, cb) ->
   for path in paths
     if file.indexOf(path) is 0
-      extract = file.replace(path + '/', '')
-      assetType = extract.substr(0, extract.indexOf('/'))
-      extract = extract.substr(assetType.length + 1)
+      relativePath = file.replace(path + '/', '')
+      assetType = relativePath.substr(0, relativePath.indexOf('/'))
+      requested = relativePath.substr(assetType.length + 1)
       cb null,
-        requested: extract,
+        requested: requested,
         type: assetType
       break;

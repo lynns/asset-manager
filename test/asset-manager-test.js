@@ -117,9 +117,22 @@ vows.describe('asset-manager')
           var jsonFile = fs.readFileSync('test/builtAssets2/manifest.json', 'utf8');
           var manifest = JSON.parse(jsonFile);
           
-          assert.equal(manifest['app1.css'].requested, "app1.css");
-          assert.equal(manifest['app1.css'].type, "css");
-          assert.equal(manifest['app1.css'].output, "<link rel='stylesheet' href='/css/app1-fcdce6b6d6e2175f6406869882f6f1ce.css' media='all'>");
+          var appCss = manifest['app1.css'];
+          assert.equal(appCss.requested, "app1.css");
+          assert.equal(appCss.type, "css");
+          assert.equal(appCss.fingerprint, "fcdce6b6d6e2175f6406869882f6f1ce");
+          assert.equal(appCss.relativePath, "css/app1-fcdce6b6d6e2175f6406869882f6f1ce.css");
+          assert.equal(appCss.output, "<link rel='stylesheet' href='/css/app1-fcdce6b6d6e2175f6406869882f6f1ce.css' media='all'>");
+          
+          var arrow = manifest['arrow.png'];
+          assert.equal(arrow.requested, "arrow.png");
+          assert.equal(arrow.type, "img");
+          // TODO: connect-assets image fingerprinting is broken...uncomment these when it works again
+          // assert.equal(arrow.fingerprint, "dd0ecf27272f0daade43058090491241");
+          // assert.equal(arrow.relativePath, "img/arrow-dd0ecf27272f0daade43058090491241.png");
+          assert.equal(arrow.fingerprint, "d41d8cd98f00b204e9800998ecf8427e");
+          assert.equal(arrow.relativePath, "img/arrow-d41d8cd98f00b204e9800998ecf8427e.png");
+          assert.equal(arrow.output, "/img/arrow-d41d8cd98f00b204e9800998ecf8427e.png");
           
           var keyCount = 0;
           for(var key in manifest)
