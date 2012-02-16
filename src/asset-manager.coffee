@@ -1,18 +1,24 @@
 async     = require 'async'
-assets    = require 'connect-assets'
 glob      = require 'glob'
 fs        = require 'fs'
 path      = require 'path'
 rimraf    = require 'rimraf'
+crypto    = require 'crypto'
+url       = require 'url'
 
 MANIFEST_NAME = 'manifest.json'
 builtAssets = ''
 paths = []
 manifest = {}
+inProd = false
+servePath = ''
+resolvedPaths = {}
 
 init = (config, cb) ->
   builtAssets = config.builtAssets ? 'builtAssets'
   context = config.context ? global
+  inProd = config.inProd ? false
+  servePath = config.servePath ? ''
 
   # Production mode with manifest will only refer to manifest file for resolving
   # asset requests to the appropriate markup/string.  Assumes that an external
@@ -38,33 +44,23 @@ init = (config, cb) ->
       cb() if cb
     
   else 
-    resolvers = []
     expandPaths config.paths, () ->
       # Output the paths that will be checked when resolving assets
       console.log "Asset Resolution Paths:"
       console.dir paths
+      
+      # setup route path resolution
+      context.js = resolveAssetPath 'js'
+      context.css = resolveCSS()
+      context.img = resolveAssetPath 'img'
 
-      for path in paths
-        resolver = 'path': path
-        mw = assets
-          src: resolver.path
-          build: config.inProd ? false
-          helperContext: resolver
-          buildDir: builtAssets
-          servePath: config.servePath ? ''
-
-        config.app.use(mw) if config.app
-        resolvers.push resolver
-
-      context.css = resolveCSS(resolvers)
-      context.js = resolveAsset 'js', resolvers
-      context.img = resolveAsset 'img', resolvers
       cb() if cb
   
 precompile = (config, cb) ->
-  config.inProd = true
+  inProd = config.inProd = true
   builtAssets = config.builtAssets ? 'builtAssets'
   context = config.context ? global
+  servePath = config.servePath ? ''
   
   # Remove any previous 'builtAssets'
   rimraf builtAssets, () ->
@@ -82,30 +78,31 @@ precompile = (config, cb) ->
 
         manifest = {}
         async.map files, extractRequestPaths, (err, pathDetails) ->
-          for pathDetail in pathDetails
-            pathDetail.output = context[pathDetail.type](pathDetail.requested)
-            extension = pathDetail.requested.substr(pathDetail.requested.lastIndexOf('.') + 1)
-            if match = pathDetail.output.match "#{pathDetail.type}.*\-([0-9a-f]{32})\.#{extension}"
-              pathDetail.relativePath = match[0] 
-              pathDetail.fingerprint = match[1]
-
-            manifest[pathDetail.requested] = pathDetail
-
-          # Write manifest file to `builtAssets` directory
           if not path.existsSync(builtAssets)
             fs.mkdirSync builtAssets, 0755
+            
+          for pathDetail in pathDetails
+            pathDetail.output = context[pathDetail.type](pathDetail.requested)
+            meta = resolvedPaths[path.join(pathDetail.type, pathDetail.requested)]
+            
+            pathDetail.relativePath = meta.relativePath
+            pathDetail.fingerprint = meta.fingerprint
+            manifest[pathDetail.requested] = pathDetail
+            
+            outputFilePath = path.resolve(builtAssets, meta.relativePath)
+            mkdirRecursive path.dirname(outputFilePath), 0755, ->
+              fs.writeFile outputFilePath, meta.content
+
+          # Write manifest file to `builtAssets` directory
           fs.writeFileSync manifestLocation(), JSON.stringify(manifest)
           
           cb() if cb
-      
-# Public exports
-module.exports.init = init
-module.exports.precompile = precompile
 
 # Local Helpers
 manifestLocation = () ->
   return "#{builtAssets}/#{MANIFEST_NAME}"
 
+# Given a route, look up it's request path in the manifest file instead of the filesystem
 resolveInManifest = (route) ->
   if route.indexOf('http') is 0
     assetType = route.substr(route.lastIndexOf('.') + 1)
@@ -121,6 +118,33 @@ resolveInManifest = (route) ->
     return ''
 
   return entry.output
+
+# Given a filesystem path, extract the path that would actually be requested by a template
+extractRequestPaths = (file, cb) ->
+  for path in paths
+    if file.indexOf(path) is 0
+      extract = file.replace(path + '/', '')
+      assetType = extract.substr(0, extract.indexOf('/'))
+      extract = extract.substr(assetType.length + 1)
+      cb null,
+        requested: extract,
+        type: assetType
+      break;
+
+# Express middleware that resolves a static asset file and returns it to the browser
+assetMiddleware = (req, res, next) ->
+  #only deal with static asset requests
+  pathParts = req.url.split "/"
+  pathParts = pathParts[1...pathParts.length]
+  if pathParts[0] not in ['css', 'js', 'img'] 
+    return next()
+
+  route = pathParts.join("/")
+  if not doesAssetPathExist(route)
+    console.log "Asset '#{route}' cannot be resolved as static asset."
+    return next();
+
+  res.sendfile resolvedPaths[route].path
   
 # Given a list of paths that may contain globs, resolve the globs and set the `paths` to be an array
 # of all the actual paths that `origPaths` expands to
@@ -143,6 +167,7 @@ expandPath = (path, cb) ->
   glob path, {stat: true, strict: true}, (er, files) ->
     cb null, files
 
+# Return the html template to be used for the given `assetType`
 getAbsTemplate = (assetType) ->
   if assetType is 'js'
     return (route) -> return "<script src=\'#{route}\'></script>"
@@ -150,32 +175,94 @@ getAbsTemplate = (assetType) ->
     return (route) -> return "<link href=\'#{route}\' rel=\'stylesheet\'>"
   return (route) -> return "#{route}"
 
-# Path route through resolution chain for the specific type of asset
-resolveAsset = (assetType, resolvers) ->
+# Checks filesystem to see if route exists in one of our asset paths, 
+# caches the absolute path of the resource, and returns the route if it exists
+# otherwise, it returns null if the path can't be found.
+doesAssetPathExist = (route) ->
+  # return from cache if found
+  if resolvedPaths[route]
+    return true
+
+  # try and resolve in asset paths
+  for aPath in paths
+    fullPath = path.resolve aPath, route
+    if path.existsSync(fullPath)
+      resolvedPaths[route] = path: fullPath
+      return true
+
+  console.log "Unable to find asset: #{route}"
+  return false
+
+# Pass route through resolution chain for the specific type of asset and
+# return the path to that asset.
+resolveAssetPath = (assetType) ->
   absTemplate = getAbsTemplate assetType
   
-  (route) ->
-    # return absolute paths right away
-    if route.indexOf('http') is 0
-      return absTemplate route
+  getContents = (path) ->
+    if assetType is 'img'
+      content = fs.readFileSync(path)
+    else
+      content = (fs.readFileSync path).toString 'utf8'
       
-    for resolver in resolvers
-      try
-        return resolver[assetType] route
-      catch e
-        continue
-    console.warn "Unable to find asset '#{route}'"
-    return route
+    if assetType is 'css'
+      content = fixCSSImagePaths content
+    
+    return content
+  
+  (route) ->
+    console.log "Processing path: #{route}" if not inProd
+    # return absolute paths right away
+    if route?.indexOf('http') is 0
+      return absTemplate route
+    
+    route = path.join assetType, route
+    
+    if doesAssetPathExist(route)
+      if inProd
+        resolvedPaths[route].content = getContents(resolvedPaths[route].path)
+        route = resolvedPaths[route].relativePath = generateHashedName(route, resolvedPaths[route])
+      route = url.resolve servePath, route
+      return absTemplate(route)
+    
+    return ''
 
 # Allow people to pass either a filename that refers directly to a css file or an object that has a key which is the
 # media target of the stylesheet and a value which is the filename of the css file.
-resolveCSS = (resolvers) ->
-  cssResolver = resolveAsset 'css', resolvers
+resolveCSS = () ->
+  cssResolver = resolveAssetPath 'css'
   (route) ->
     details = extractMediaType route
     cssLink = cssResolver details.filePath
     return cssLink.replace '>', " media='#{details.mediaType}'>"
 
+resolveImgPath = (path) ->
+  resolvedPath = path + ""
+  resolvedPath = resolvedPath.replace /url\(|'|"|\)/g, ''
+  try
+    resolvedPath = img resolvedPath
+  catch e
+    console.error "Can't resolve image path: #{resolvedPath}"
+  return "url('#{resolvedPath}')"
+
+fixCSSImagePaths = (css) ->
+  regex = /url\([^\)]+\)/g
+  css = css.replace regex, resolveImgPath
+  return css
+    
+# Hash the file name
+generateHashedName = (route, meta) ->
+  hash = crypto.createHash('md5')
+  # Simulate writing file to disk, including encoding coersions
+  # This ensures that the md5 in the name matches the command-line tool.
+  hash.update new Buffer(meta.content)
+  meta.fingerprint = hash.digest 'hex'
+  
+  lastDot = route.lastIndexOf '.'
+  return "#{route.substr(0,lastDot)}-#{meta.fingerprint}#{route.substr(lastDot)}"
+
+# CSS files can be include by passing a string that is the path to the css file OR an object which contains a key that 
+# is the media type of the css file and the value is the path to the css file.  This function takes the css 'route' and 
+# returns an object with a media type and a path.
 extractMediaType = (route) ->
   details = 
     mediaType: 'all'
@@ -187,15 +274,20 @@ extractMediaType = (route) ->
       details.filePath = path
   
   return details
+
+mkdirRecursive = (dir, mode, callback) ->
+  pathParts = path.normalize(dir).split '/'
+  if path.existsSync dir
+    return callback null
+    
+  mkdirRecursive pathParts.slice(0,-1).join('/'), mode, (err) ->
+    return callback err if err and err.errno isnt process.EEXIST
+    fs.mkdirSync dir, mode
+    callback()
+
+compressJS = (content) ->
   
-# Given a filesystem path, extract the path that would actually be requested by a template
-extractRequestPaths = (file, cb) ->
-  for path in paths
-    if file.indexOf(path) is 0
-      relativePath = file.replace(path + '/', '')
-      assetType = relativePath.substr(0, relativePath.indexOf('/'))
-      requested = relativePath.substr(assetType.length + 1)
-      cb null,
-        requested: requested,
-        type: assetType
-      break;
+# Public exports
+module.exports.init = init
+module.exports.precompile = precompile
+module.exports.expressMiddleware = assetMiddleware
