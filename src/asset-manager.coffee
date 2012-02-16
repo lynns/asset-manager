@@ -1,10 +1,11 @@
-async     = require 'async'
-glob      = require 'glob'
-fs        = require 'fs'
-path      = require 'path'
-rimraf    = require 'rimraf'
-crypto    = require 'crypto'
-url       = require 'url'
+async           = require 'async'
+glob            = require 'glob'
+fs              = require 'fs'
+path            = require 'path'
+rimraf          = require 'rimraf'
+crypto          = require 'crypto'
+url             = require 'url'
+{parser,uglify} = require 'uglify-js'
 
 MANIFEST_NAME = 'manifest.json'
 builtAssets = ''
@@ -86,12 +87,19 @@ precompile = (config, cb) ->
             meta = resolvedPaths[path.join(pathDetail.type, pathDetail.requested)]
             
             pathDetail.relativePath = meta.relativePath
+            outputFilePath = outputFilePathRaw = path.resolve(builtAssets, meta.relativePath)
+            if pathDetail.type is 'js'
+              pathDetail.relativePathRaw = appendToName(meta.relativePath, "_raw")
+              outputFilePathRaw = path.resolve(builtAssets, pathDetail.relativePathRaw)
             pathDetail.fingerprint = meta.fingerprint
+            
             manifest[pathDetail.requested] = pathDetail
             
-            outputFilePath = path.resolve(builtAssets, meta.relativePath)
-            mkdirRecursive path.dirname(outputFilePath), 0755, ->
-              fs.writeFile outputFilePath, meta.content
+            mkdirRecursiveSync path.dirname(outputFilePath), 0755, ->
+              fs.writeFile outputFilePathRaw, meta.content
+              if pathDetail.type is 'js'
+                meta.content_min = compressJS(meta.content)
+                fs.writeFile outputFilePath, meta.content_min
 
           # Write manifest file to `builtAssets` directory
           fs.writeFileSync manifestLocation(), JSON.stringify(manifest)
@@ -101,6 +109,10 @@ precompile = (config, cb) ->
 # Local Helpers
 manifestLocation = () ->
   return "#{builtAssets}/#{MANIFEST_NAME}"
+
+appendToName = (name, str) ->
+  lastDot = name.lastIndexOf '.'
+  return "#{name.substr(0,lastDot)}#{str}#{name.substr(lastDot)}"
 
 # Given a route, look up it's request path in the manifest file instead of the filesystem
 resolveInManifest = (route) ->
@@ -144,7 +156,12 @@ assetMiddleware = (req, res, next) ->
     console.log "Asset '#{route}' cannot be resolved as static asset."
     return next();
 
-  res.sendfile resolvedPaths[route].path
+  if pathParts[0] is 'css'
+    content = (fs.readFileSync resolvedPaths[route].path).toString 'utf8'
+    content = fixCSSImagePaths content
+    res.send content, {'Content-Type' : 'text/css'}
+  else
+    res.sendfile resolvedPaths[route].path
   
 # Given a list of paths that may contain globs, resolve the globs and set the `paths` to be an array
 # of all the actual paths that `origPaths` expands to
@@ -210,7 +227,6 @@ resolveAssetPath = (assetType) ->
     return content
   
   (route) ->
-    console.log "Processing path: #{route}" if not inProd
     # return absolute paths right away
     if route?.indexOf('http') is 0
       return absTemplate route
@@ -242,6 +258,8 @@ resolveImgPath = (path) ->
     resolvedPath = img resolvedPath
   catch e
     console.error "Can't resolve image path: #{resolvedPath}"
+  if resolvedPath[0] isnt '/'
+    resolvedPath = '/' + resolvedPath
   return "url('#{resolvedPath}')"
 
 fixCSSImagePaths = (css) ->
@@ -257,8 +275,7 @@ generateHashedName = (route, meta) ->
   hash.update new Buffer(meta.content)
   meta.fingerprint = hash.digest 'hex'
   
-  lastDot = route.lastIndexOf '.'
-  return "#{route.substr(0,lastDot)}-#{meta.fingerprint}#{route.substr(lastDot)}"
+  return appendToName(route, "-#{meta.fingerprint}")
 
 # CSS files can be include by passing a string that is the path to the css file OR an object which contains a key that 
 # is the media type of the css file and the value is the path to the css file.  This function takes the css 'route' and 
@@ -275,18 +292,22 @@ extractMediaType = (route) ->
   
   return details
 
-mkdirRecursive = (dir, mode, callback) ->
+mkdirRecursiveSync = (dir, mode, callback) ->
   pathParts = path.normalize(dir).split '/'
   if path.existsSync dir
     return callback null
     
-  mkdirRecursive pathParts.slice(0,-1).join('/'), mode, (err) ->
+  mkdirRecursiveSync pathParts.slice(0,-1).join('/'), mode, (err) ->
     return callback err if err and err.errno isnt process.EEXIST
     fs.mkdirSync dir, mode
     callback()
 
 compressJS = (content) ->
-  
+  ast = parser.parse content
+  ast = uglify.ast_mangle ast
+  ast = uglify.ast_squeeze ast
+  return uglify.gen_code(ast)
+
 # Public exports
 module.exports.init = init
 module.exports.precompile = precompile
