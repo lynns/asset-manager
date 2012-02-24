@@ -6,7 +6,7 @@
   "repository": {"type": "git", "url": "git://github.com/fs-webdev/asset-manager.git"},
   "dependencies": {
       "async": ">= 0.1.12"
-    , "glob": ">=3.0.1"
+    , "glob": "3.0.1"
     , "rimraf": ">=1.0.9"
     , "uglify-js": "1.2.x"
   },
