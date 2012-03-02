@@ -48,9 +48,9 @@ buster.testCase("Utils tests", {
     "expand multiple paths": function(done){
       var basePaths = ['test/app1', 'test/app2'];
       this.utils.expandPaths(basePaths, function(paths) {
-        assert.same(paths.length, 2);
-        assert.same(paths[0], "test/app1");
-        assert.same(paths[1], "test/app2");
+        assert.equals(paths.length, 2);
+        refute.equals(paths.indexOf("test/app1"), -1);
+        refute.equals(paths.indexOf("test/app2"), -1);
         done();
       });
     },
@@ -58,10 +58,10 @@ buster.testCase("Utils tests", {
     "expand wildcard path": function(done){
       var basePaths = ['test/*'];
       this.utils.expandPaths(basePaths, function(paths) {
-        assert.same(paths.length, 3);
-        assert.same(paths[0], "test/app1");
-        assert.same(paths[1], "test/app2");
-        assert.same(paths[2], "test/app3");
+        assert.equals(paths.length, 4);
+        refute.equals(paths.indexOf("test/app1"), -1);
+        refute.equals(paths.indexOf("test/app2"), -1);
+        refute.equals(paths.indexOf("test/app3"), -1);
         done();
       });
     },
@@ -156,47 +156,3 @@ buster.testCase("Utils tests", {
     }
   }
 });
-  
-//  "Checks if a string path is accepted": function () {
-//    this.config.paths = "path1";
-//    var wrangler = require("../lib/assetWrangler")(this.config);
-//    
-//    var paths = wrangler.getPaths();
-//    
-//    assert.typeOf(paths, "object");
-//    assert.equals(1, paths.length);
-//  },
-//  
-//  "No config.paths should get default path value": function () {
-//    var wrangler = require("../lib/assetWrangler")(this.config);
-//
-//    var paths = wrangler.getPaths();
-//
-//    assert.typeOf(paths, "object");
-//    assert.equals(1, paths.length);
-//    assert.equals("assets", paths[0]);
-//  },
-//  
-//  "No config object should just get defaults": function () {
-//    var wrangler = require("../lib/assetWrangler")();
-//
-//    var paths = wrangler.getPaths();
-//
-//    assert.typeOf(paths, "object");
-//    assert.equals(1, paths.length);
-//    assert.equals("assets", paths[0]);
-//  }
-//buster.testCase("Test Reading Module Dependencies", {
-//  setUp: function(){
-//    this.config = {
-//      paths: 'test/assets'
-//    };
-//  },
-//  
-//  "Assemble bundles": function () {
-//    var wrangler = require("../lib/assetWrangler")(this.config);
-//    
-//    wrangler.assembleBundles();
-//    assert(true);
-//  }
-//});
