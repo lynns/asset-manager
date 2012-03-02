@@ -5,17 +5,42 @@ buster.testCase("Test expandPaths", {
     this.utils = require('../lib/utils');
   },
   
-  "expand a single string": function(){
-    var s = "This is my string";
-    var hash = this.utils.generateHash(s);
-    
-    assert.typeOf(hash, "string");
-    assert.equals("c2a9ce57e8df081b4baad80d81868bbb", hash);
-    
-    s = s + " ";
-    var hash2 = this.utils.generateHash(s);
-    
-    refute.equals(hash, hash2);
+  "expand a single path": function(done){
+    var basePaths = ['test/app1'];
+    this.utils.expandPaths(basePaths, function(paths) {
+      assert.same(paths.length, 1);
+      assert.same(paths[0], "test/app1");
+      done();
+    });
+  },
+  
+  "expand multiple paths": function(done){
+    var basePaths = ['test/app1', 'test/app2'];
+    this.utils.expandPaths(basePaths, function(paths) {
+      assert.same(paths.length, 2);
+      assert.same(paths[0], "test/app1");
+      assert.same(paths[1], "test/app2");
+      done();
+    });
+  },
+  
+  "expand wildcard path": function(done){
+    var basePaths = ['test/*'];
+    this.utils.expandPaths(basePaths, function(paths) {
+      assert.same(paths.length, 3);
+      assert.same(paths[0], "test/app1");
+      assert.same(paths[1], "test/app2");
+      assert.same(paths[2], "test/app3");
+      done();
+    });
+  },
+  
+  "expand invalid path": function(done){
+    var basePaths = ['noPath/here'];
+    this.utils.expandPaths(basePaths, function(paths) {
+      assert.same(paths.length, 0);
+      done();
+    });
   }
 });
 
