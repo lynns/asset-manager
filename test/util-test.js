@@ -7,6 +7,44 @@ buster.testCase("Utils tests", {
     this.utils = require('../lib/utils');
   },
   
+  "Test extend": {
+    setUp : function() {
+      this.obj1 = {
+        name : "value",
+        name1 : "value1"
+      };
+      
+      this.obj2 = {
+        name : "valueNew",
+        name2 : "value2"
+      }
+    },
+    
+    "extend two objects": function() {
+      var merged = this.utils.extend(this.obj1, this.obj2);
+      
+      assert.equals(this.obj2.name, merged.name);
+      assert.equals(this.obj1.name1, merged.name1);
+      assert.equals(this.obj2.name2, merged.name2);
+    },
+    
+    "extend an empty object": function() {
+      var merged = this.utils.extend({}, this.obj2);
+      
+      assert.equals(this.obj2.name, merged.name);
+      assert.equals(this.obj2.name2, merged.name2);
+      refute.same(merged, this.obj2);
+    },
+    
+    "extend an with an empty object": function() {
+      var merged = this.utils.extend(this.obj2, {});
+      
+      assert.equals(this.obj2.name, merged.name);
+      assert.equals(this.obj2.name2, merged.name2);
+      refute.same(merged, this.obj2);
+    }
+  },
+    
   "Test mkdirRecursiveSync": {
     setUp: function(){
       this.baseFolder = "test/tmp";
