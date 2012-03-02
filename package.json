@@ -14,7 +14,7 @@
     "buster": "0.4.5"
   },
   "main": "lib/asset-manager.js",
-  "engines": { "node": ">= 0.4.7" },
+  "engines": { "node": ">= 0.6.3" },
   "contributors": [
       "Tim Shadel <tim.shadel@familysearch.org>"
     , "Stephen Lynn <s.lynn@familysearch.org>"
