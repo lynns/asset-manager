@@ -1,6 +1,7 @@
 var buster = require("buster"),
     fs = require('fs'),
-    path = require('path');
+    path = require('path'),
+    rimraf = require('rimraf');
 
 buster.testCase("Utils tests", {
   setUp: function(){
@@ -47,12 +48,14 @@ buster.testCase("Utils tests", {
     
   "Test mkdirRecursiveSync": {
     setUp: function(){
-      this.baseFolder = "test/tmp";
-      fs.mkdirSync(this.baseFolder);
+      this.baseFolder = "tmp";
+      fs.mkdirSync(this.baseFolder, 0755);
     },
-    
-    tearDown: function(){
-      fs.rmdirSync(this.baseFolder);
+
+    tearDown: function(done){
+      rimraf(this.baseFolder, function(){
+        done();
+      });
     },
     
     "make a single folder": function() {
