@@ -39,23 +39,23 @@ static assets into the markup need to resolve these assets in your page. For ins
 If you want to have your app serve the static assets as well (a likely case at dev time), you can use the provided
 Express middle ware to do this:
 
-  app.use(assetManager.expressMiddleware);
+    app.use(assetManager.expressMiddleware);
 
 ### Precompile assets
 
 You can precompile your assets into their production form as follows (CDN_BASE_URL should be set to whatever url you want
 prepended to your static asset paths):
 
-  assetManager.precompile({
-      paths: ["assets", 
-              "../global/assets", 
-              "vendor")],
-      servePath: CDN_BASE_URL
-    }, callback);
+    assetManager.precompile({
+        paths: ["assets", 
+                "../global/assets", 
+                "vendor")],
+        servePath: CDN_BASE_URL
+      }, callback);
 
 ## Options
 
-If you like, you can pass any of these options to the `init` function:
+If you like, you can pass any of these options to the `start` function:
 
 * `paths` (required): An array of paths that should be used to find static assets.
 * `inProd` (defaults to `false`): Indicates whether the application is running in production mode or not. 
