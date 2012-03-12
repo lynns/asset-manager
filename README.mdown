@@ -21,7 +21,7 @@ Finally, initialize the manager with the paths it should search for static asset
     assetManager.start({
         paths: ["assets", 
                 "../global/assets", 
-                "vendor")],
+                "vendor"],
         inProd: (process.env.NODE_ENV === 'production')
       }, callback);
 
