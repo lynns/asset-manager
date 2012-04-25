@@ -47,7 +47,7 @@ buster.testCase("Asset Manager", {
       },
       
       "check css resolution": function(){
-        assert.equals("<link href='/css/app3.css' rel='stylesheet' media='all'>", this.context.css("app3.css"));
+        assert.equals("<link href='/css/app3.css' rel='stylesheet' media='screen'>", this.context.css("app3.css"));
       },
       
       "check img resolution": function(){
@@ -78,7 +78,7 @@ buster.testCase("Asset Manager", {
       },
       
       "check css resolution": function(){
-        assert.equals("<link href='/css/app3-fcdce6b6d6e2175f6406869882f6f1ce.css' rel='stylesheet' media='all'>", this.context.css("app3.css"));
+        assert.equals("<link href='/css/app3-fcdce6b6d6e2175f6406869882f6f1ce.css' rel='stylesheet' media='screen'>", this.context.css("app3.css"));
       },
       
       "check img resolution": function(){
