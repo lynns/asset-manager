@@ -5,13 +5,13 @@
   "author": "FamilySearch Web Developers",
   "repository": {"type": "git", "url": "git://github.com/fs-webdev/asset-manager.git"},
   "dependencies": {
-      "async": ">= 0.1.12"
+      "async": "0.1.x"
     , "glob": "3.0.1"
-    , "rimraf": ">=1.0.9"
+    , "rimraf": "1.x"
     , "uglify-js": "1.2.x"
   },
   "devDependencies": {
-    "buster": "0.4.5"
+    "buster": "0.6.x"
   },
   "main": "lib/asset-manager.js",
   "engines": { "node": ">= 0.6.3" },
