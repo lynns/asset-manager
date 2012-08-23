@@ -97,12 +97,12 @@ buster.testCase("Asset Manager", {
   
   "Test exports.precompile": {
     "only english": function(done) {
-      var tmpDir = this.tmpDir  + "TEST";
+      var tmpDir = this.tmpDir;
       this.am.precompile({
         paths: ['test/app3'],
         servePath: "CDNPath",
         builtAssets: tmpDir,
-        gzip: false
+        gzip: true
       }, function(){
         assert.equals(true, path.existsSync(path.join(tmpDir, "js", "app3-29b858db32acb754b5a863b899c58d4d.js")));
         assert.equals(true, path.existsSync(path.join(tmpDir, "js", "app3-29b858db32acb754b5a863b899c58d4d_raw.js")));
