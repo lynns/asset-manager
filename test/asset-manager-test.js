@@ -172,7 +172,7 @@ buster.testCase("Asset Manager", {
     },
     
     "css with embedded url to non-existent image": function(done) {
-      var tmpDir = this.tmpDir;
+      var tmpDir = this.tmpDir+"TMP";
       this.am.precompile({
         paths: ['test/app1', 'test/app2'],
         servePath: "CDNPath",
