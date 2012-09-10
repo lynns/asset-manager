@@ -36,28 +36,32 @@ buster.testCase("Asset Manager", {
         });
       },
       
-      "check asset function existence": function(){
+      "//check asset function existence": function(){
         assert.isFunction(this.context.css);
         assert.isFunction(this.context.js);
         assert.isFunction(this.context.img);
       },
       
-      "check js resolution": function(){
+      "//check js resolution": function(){
         assert.equals("<script src='/js/app3.js'></script>", this.context.js("app3.js"));
       },
       
-      "check css resolution": function(){
+      "//check css resolution": function(){
         assert.equals("<link href='/css/app3.css' rel='stylesheet' media='screen'>", this.context.css("app3.css"));
         assert.equals("<link href='/css/app3.css' rel='stylesheet' media='print'>", this.context.css({print : 'app3.css'}));
         assert.equals("", this.context.css("mynonexistentfile.css"));
       },
       
-      "check img resolution": function(){
+      "check less resolution": function(){
+        assert.equals("<link href='/css/lessTest.less.css' rel='stylesheet' media='screen'>", this.context.css("lessTest.less"));
+      },
+      
+      "//check img resolution": function(){
         assert.equals("/img/arrow3.png", this.context.img("arrow3.png"));
       }
     },
     
-    "with scanDir": {
+    "//with scanDir": {
       setUp: function(done) {
         this.am.start({
           paths: ['test/app3'],
@@ -80,7 +84,7 @@ buster.testCase("Asset Manager", {
       }
     },
     
-    "in production mode": {
+    "//in production mode": {
       setUp: function(done) {
         this.am.start({
           paths: ['test/app3'],
@@ -119,7 +123,7 @@ buster.testCase("Asset Manager", {
     }
   },
   
-  "Test exports.precompile": {
+  "//Test exports.precompile": {
     "only english": function(done) {
       var tmpDir = this.tmpDir;
       this.am.precompile({
