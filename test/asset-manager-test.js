@@ -54,6 +54,7 @@ buster.testCase("Asset Manager", {
       
       "check less resolution": function(){
         assert.equals("<link href='/css/lessTest.less.css' rel='stylesheet' media='screen'>", this.context.css("lessTest.less"));
+        assert.equals("<link href='/css/lessTest.less.css' rel='stylesheet' media='print'>", this.context.css({print : 'lessTest.less'}));
       },
       
       "check img resolution": function(){

@@ -44,6 +44,19 @@ buster.testCase("Utils tests", {
       refute.same(merged, this.obj2);
     }
   },
+  
+  "Test extractMediaMeta": {
+    "plain path": function() {
+      var meta = this.utils.extractMediaMeta("mypath");
+      assert.same("mypath", meta.path);
+      assert.same("screen", meta.mediaType);
+    },
+    "object": function() {
+      var meta = this.utils.extractMediaMeta({print:"mypath"});
+      assert.same("mypath", meta.path);
+      assert.same("print", meta.mediaType);
+    }
+  },
     
   "Test mkdirRecursiveSync": {
     setUp: function(){
