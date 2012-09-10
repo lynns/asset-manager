@@ -29,24 +29,24 @@ buster.testCase("Asset Manager", {
     "in development mode": {
       setUp: function(done) {
         this.am.start({
-          paths: ['test/app3'],
+          paths: ['test/app3', 'test/app5'],
           context: this.context
         }, function(){
           done();
         });
       },
       
-      "//check asset function existence": function(){
+      "check asset function existence": function(){
         assert.isFunction(this.context.css);
         assert.isFunction(this.context.js);
         assert.isFunction(this.context.img);
       },
       
-      "//check js resolution": function(){
+      "check js resolution": function(){
         assert.equals("<script src='/js/app3.js'></script>", this.context.js("app3.js"));
       },
       
-      "//check css resolution": function(){
+      "check css resolution": function(){
         assert.equals("<link href='/css/app3.css' rel='stylesheet' media='screen'>", this.context.css("app3.css"));
         assert.equals("<link href='/css/app3.css' rel='stylesheet' media='print'>", this.context.css({print : 'app3.css'}));
         assert.equals("", this.context.css("mynonexistentfile.css"));
@@ -56,12 +56,12 @@ buster.testCase("Asset Manager", {
         assert.equals("<link href='/css/lessTest.less.css' rel='stylesheet' media='screen'>", this.context.css("lessTest.less"));
       },
       
-      "//check img resolution": function(){
+      "check img resolution": function(){
         assert.equals("/img/arrow3.png", this.context.img("arrow3.png"));
       }
     },
     
-    "//with scanDir": {
+    "with scanDir": {
       setUp: function(done) {
         this.am.start({
           paths: ['test/app3'],
@@ -84,10 +84,10 @@ buster.testCase("Asset Manager", {
       }
     },
     
-    "//in production mode": {
+    "in production mode": {
       setUp: function(done) {
         this.am.start({
-          paths: ['test/app3'],
+          paths: ['test/app3', 'test/app5'],
           context: this.context,
           inProd: true,
           servePath: ""
@@ -111,6 +111,10 @@ buster.testCase("Asset Manager", {
         assert.equals("<link href='/css/app3-fcdce6b6d6e2175f6406869882f6f1ce.css' rel='stylesheet' media='print'>", this.context.css({print : 'app3.css'}));
       },
       
+      "check less resolution": function(){
+        assert.equals("<link href='/css/lessTest-498fb2b7cb4ec5d370c7fe0b9fd7e27b.less.css' rel='stylesheet' media='screen'>", this.context.css("lessTest.less"));
+      },
+      
       "check img resolution": function(){
         assert.equals("/img/arrow3-dd0ecf27272f0daade43058090491241.png", this.context.img("arrow3.png"));
       },
@@ -123,11 +127,11 @@ buster.testCase("Asset Manager", {
     }
   },
   
-  "//Test exports.precompile": {
+  "Test exports.precompile": {
     "only english": function(done) {
       var tmpDir = this.tmpDir;
       this.am.precompile({
-        paths: ['test/app3'],
+        paths: ['test/app3', 'test/app5'],
         servePath: "CDNPath",
         builtAssets: tmpDir,
         gzip: true
@@ -135,8 +139,8 @@ buster.testCase("Asset Manager", {
         assert.equals(true, path.existsSync(path.join(tmpDir, "js", "app3-cb248e942f61a08ff6f783b491bcfa4e.js")));
         assert.equals(true, path.existsSync(path.join(tmpDir, "js", "app3-cb248e942f61a08ff6f783b491bcfa4e_raw.js")));
         
-        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "clientManifest-f75a99ac26c50c135c5e28d09cc4220d.js")));
-        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "clientManifest-f75a99ac26c50c135c5e28d09cc4220d_raw.js")));
+        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "clientManifest-7bd31ec692e4df07c81a21aed32e131c.js")));
+        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "clientManifest-7bd31ec692e4df07c81a21aed32e131c_raw.js")));
         
         assert.equals(true, path.existsSync(path.join(tmpDir, "manifest.json")));
         
