@@ -59,6 +59,12 @@ buster.testCase("Asset Manager", {
       
       "check img resolution": function(){
         assert.equals("/img/arrow3.png", this.context.img("arrow3.png"));
+      },
+      
+      "absolute paths": function() {
+        assert.equals("<script src='http://path.com/me.js'></script>", this.context.js("http://path.com/me.js"))
+        assert.equals("<link href='http://path.com/me.css' media='screen'>", this.context.css("http://path.com/me.css"))
+        assert.equals("http://path.com/me.png", this.context.img("http://path.com/me.png"))
       }
     },
     

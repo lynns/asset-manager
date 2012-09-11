@@ -44,7 +44,7 @@ buster.testCase("Utils tests", {
       refute.same(merged, this.obj2);
     }
   },
-  
+
   "Test filterAssembliesFiles": {
     "simple set": function() {
       var allFiles = ['file1.txt', 'file2.txt', 'module/file3.txt', 'module/file4.txt'],
