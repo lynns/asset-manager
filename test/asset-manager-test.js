@@ -137,16 +137,16 @@ buster.testCase("Asset Manager", {
         builtAssets: tmpDir,
         gzip: true
       }, function(){
-        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "app3-cb248e942f61a08ff6f783b491bcfa4e.js")));
-        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "app3-cb248e942f61a08ff6f783b491bcfa4e_raw.js")));
+        assert.equals(true, fs.existsSync(path.join(tmpDir, "js", "app3-cb248e942f61a08ff6f783b491bcfa4e.js")));
+        assert.equals(true, fs.existsSync(path.join(tmpDir, "js", "app3-cb248e942f61a08ff6f783b491bcfa4e_raw.js")));
         
-        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "clientManifest-7bd31ec692e4df07c81a21aed32e131c.js")));
-        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "clientManifest-7bd31ec692e4df07c81a21aed32e131c_raw.js")));
+        assert.equals(true, fs.existsSync(path.join(tmpDir, "js", "clientManifest-7bd31ec692e4df07c81a21aed32e131c.js")));
+        assert.equals(true, fs.existsSync(path.join(tmpDir, "js", "clientManifest-7bd31ec692e4df07c81a21aed32e131c_raw.js")));
         
-        assert.equals(true, path.existsSync(path.join(tmpDir, "manifest.json")));
+        assert.equals(true, fs.existsSync(path.join(tmpDir, "manifest.json")));
         
-        assert.equals(true, path.existsSync(path.join(tmpDir, "css", "app3-fcdce6b6d6e2175f6406869882f6f1ce.css")));
-        assert.equals(true, path.existsSync(path.join(tmpDir, "img", "arrow3-dd0ecf27272f0daade43058090491241.png")));
+        assert.equals(true, fs.existsSync(path.join(tmpDir, "css", "app3-fcdce6b6d6e2175f6406869882f6f1ce.css")));
+        assert.equals(true, fs.existsSync(path.join(tmpDir, "img", "arrow3-dd0ecf27272f0daade43058090491241.png")));
         
         var manifest = fs.readFileSync(path.join(tmpDir, "manifest.json"), 'utf8');
         manifest = JSON.parse(manifest);
@@ -189,7 +189,7 @@ buster.testCase("Asset Manager", {
         gzip: false
       }, function(){
         var filePath = path.join(tmpDir, "css", "appWithUrl-ae0d0be75519249c281ddda1fddb89b8.css");
-        assert.equals(true, path.existsSync(filePath));
+        assert.equals(true, fs.existsSync(filePath));
         var contents = fs.readFileSync(filePath, 'UTF-8');
         refute.equals(-1, contents.indexOf('/CDNPath/img/arrow2-dd0ecf27272f0daade43058090491241.png'));
         refute.equals(-1, contents.indexOf("url('missingImage.png')"));
@@ -206,10 +206,10 @@ buster.testCase("Asset Manager", {
         builtAssets: tmpDir,
         locales: ["en", "es", "zh", "fr"]
       }, function(){
-        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "app3-29b858db32acb754b5a863b899c58d4d.js")), "english file doesn't exist");
-        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "app3-29b858db32acb754b5a863b899c58d4d_es.js")), "spanish file doesn't exist");
-        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "app3-29b858db32acb754b5a863b899c58d4d_zh.js")), "chinese file doesn't exist");
-        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "app3-29b858db32acb754b5a863b899c58d4d_fr.js")), "french file doesn't exist");
+        assert.equals(true, fs.existsSync(path.join(tmpDir, "js", "app3-29b858db32acb754b5a863b899c58d4d.js")), "english file doesn't exist");
+        assert.equals(true, fs.existsSync(path.join(tmpDir, "js", "app3-29b858db32acb754b5a863b899c58d4d_es.js")), "spanish file doesn't exist");
+        assert.equals(true, fs.existsSync(path.join(tmpDir, "js", "app3-29b858db32acb754b5a863b899c58d4d_zh.js")), "chinese file doesn't exist");
+        assert.equals(true, fs.existsSync(path.join(tmpDir, "js", "app3-29b858db32acb754b5a863b899c58d4d_fr.js")), "french file doesn't exist");
         
         done();
       });
@@ -223,8 +223,8 @@ buster.testCase("Asset Manager", {
         builtAssets: this.tmpDir,
         locales: ["en", "es"]
       }, function(){
-        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "fullModule-29b858db32acb754b5a863b899c58d4d.js")));
-        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "fullModule-29b858db32acb754b5a863b899c58d4d_es.js")));
+        assert.equals(true, fs.existsSync(path.join(tmpDir, "js", "fullModule-29b858db32acb754b5a863b899c58d4d.js")));
+        assert.equals(true, fs.existsSync(path.join(tmpDir, "js", "fullModule-29b858db32acb754b5a863b899c58d4d_es.js")));
         done();
       });
     }
