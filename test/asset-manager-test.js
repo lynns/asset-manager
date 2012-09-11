@@ -57,9 +57,17 @@ buster.testCase("Asset Manager", {
       },
       
       "absolute paths": function() {
-        assert.equals("<script src='http://path.com/me.js'></script>", this.context.js("http://path.com/me.js"))
-        assert.equals("<link href='http://path.com/me.css' media='screen'>", this.context.css("http://path.com/me.css"))
-        assert.equals("http://path.com/me.png", this.context.img("http://path.com/me.png"))
+        assert.equals("<script src='http://path.com/me.js'></script>", this.context.js("http://path.com/me.js"));
+        assert.equals("<link href='http://path.com/me.css' rel='stylesheet' media='screen'>", this.context.css("http://path.com/me.css"));
+        assert.equals("http://path.com/me.png", this.context.img("http://path.com/me.png"));
+        
+        assert.equals("<script src='https://path.com/me.js'></script>", this.context.js("https://path.com/me.js"));
+        assert.equals("<link href='https://path.com/me.css' rel='stylesheet' media='screen'>", this.context.css("https://path.com/me.css"));
+        assert.equals("https://path.com/me.png", this.context.img("https://path.com/me.png"));
+        
+        assert.equals("<script src='http://path.com/me.js?query#hash'></script>", this.context.js("http://path.com/me.js?query#hash"));
+        assert.equals("<link href='http://path.com/me.css?query#hash' rel='stylesheet' media='screen'>", this.context.css("http://path.com/me.css?query#hash"));
+        assert.equals("http://path.com/me.png?query#hash", this.context.img("http://path.com/me.png?query#hash"));
       }
     },
     
@@ -121,6 +129,20 @@ buster.testCase("Asset Manager", {
         assert.equals("/img/webfonts/League_Gothic-webfont-036cfa9c2ade08c1a4ee234526201dc8.eot", this.context.img("webfonts/League_Gothic-webfont.eot"));
         assert.equals("/img/webfonts/League_Gothic-webfont-036cfa9c2ade08c1a4ee234526201dc8.eot?#iefix", this.context.img("webfonts/League_Gothic-webfont.eot?#iefix"));
         assert.equals("/img/webfonts/League_Gothic-webfont-036cfa9c2ade08c1a4ee234526201dc8.eot#iefix", this.context.img("webfonts/League_Gothic-webfont.eot#iefix"));
+      },
+      
+      "absolute paths": function() {
+        assert.equals("<script src='http://path.com/me.js'></script>", this.context.js("http://path.com/me.js"));
+        assert.equals("<link href='http://path.com/me.css' rel='stylesheet' media='screen'>", this.context.css("http://path.com/me.css"));
+        assert.equals("http://path.com/me.png", this.context.img("http://path.com/me.png"));
+        
+        assert.equals("<script src='https://path.com/me.js'></script>", this.context.js("https://path.com/me.js"));
+        assert.equals("<link href='https://path.com/me.css' rel='stylesheet' media='screen'>", this.context.css("https://path.com/me.css"));
+        assert.equals("https://path.com/me.png", this.context.img("https://path.com/me.png"));
+        
+        assert.equals("<script src='http://path.com/me.js?query#hash'></script>", this.context.js("http://path.com/me.js?query#hash"));
+        assert.equals("<link href='http://path.com/me.css?query#hash' rel='stylesheet' media='screen'>", this.context.css("http://path.com/me.css?query#hash"));
+        assert.equals("http://path.com/me.png?query#hash", this.context.img("http://path.com/me.png?query#hash"));
       }
     }
   },
