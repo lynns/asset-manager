@@ -51,7 +51,6 @@ buster.testCase("Utils tests", {
           assemblyFolders = ['module'],
           filtered = this.utils.filterAssembliesFiles(allFiles, assemblyFolders);
       
-      console.log(filtered);
       assert.same(3, filtered.length);
     },
     "name overlap": function() {
@@ -59,7 +58,6 @@ buster.testCase("Utils tests", {
           assemblyFolders = ['longFile'],
           filtered = this.utils.filterAssembliesFiles(allFiles, assemblyFolders);
       
-      console.log(filtered);
       assert.same(3, filtered.length);
     }
   },
