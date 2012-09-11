@@ -44,16 +44,18 @@ buster.testCase("Asset Manager", {
       
       "check js resolution": function(){
         assert.equals("<script src='/js/app3.js'></script>", this.context.js("app3.js"));
+        assert.equals("<script src='/js/app3.js'></script>", this.context.js("/app3.js"));
       },
       
       "check css resolution": function(){
         assert.equals("<link href='/css/app3.css' rel='stylesheet' media='screen'>", this.context.css("app3.css"));
         assert.equals("<link href='/css/app3.css' rel='stylesheet' media='print'>", this.context.css({print : 'app3.css'}));
-        assert.equals("", this.context.css("mynonexistentfile.css"));
+        assert.equals("<link href='mynonexistentfile.css' rel='stylesheet' media='screen'>", this.context.css("mynonexistentfile.css"));
       },
       
       "check img resolution": function(){
         assert.equals("/img/arrow3.png", this.context.img("arrow3.png"));
+        assert.equals("/img/arrow3.png", this.context.img("/arrow3.png"));
       },
       
       "absolute paths": function() {
@@ -68,6 +70,16 @@ buster.testCase("Asset Manager", {
         assert.equals("<script src='http://path.com/me.js?query#hash'></script>", this.context.js("http://path.com/me.js?query#hash"));
         assert.equals("<link href='http://path.com/me.css?query#hash' rel='stylesheet' media='screen'>", this.context.css("http://path.com/me.css?query#hash"));
         assert.equals("http://path.com/me.png?query#hash", this.context.img("http://path.com/me.png?query#hash"));
+      },
+      
+      "unresolved relative paths": function() {
+        assert.equals("<script src='unresolvedPath.js'></script>", this.context.js("unresolvedPath.js"));
+        assert.equals("<link href='unresolvedPath.css' rel='stylesheet' media='screen'>", this.context.css("unresolvedPath.css"));
+        assert.equals("unresolvedPath.png", this.context.img("unresolvedPath.png"));
+        
+        assert.equals("<script src='unresolvedPath.js?query#hash'></script>", this.context.js("unresolvedPath.js?query#hash"));
+        assert.equals("<link href='unresolvedPath.css?query#hash' rel='stylesheet' media='screen'>", this.context.css("unresolvedPath.css?query#hash"));
+        assert.equals("unresolvedPath.png?query#hash", this.context.img("unresolvedPath.png?query#hash"));
       }
     },
     
@@ -143,6 +155,16 @@ buster.testCase("Asset Manager", {
         assert.equals("<script src='http://path.com/me.js?query#hash'></script>", this.context.js("http://path.com/me.js?query#hash"));
         assert.equals("<link href='http://path.com/me.css?query#hash' rel='stylesheet' media='screen'>", this.context.css("http://path.com/me.css?query#hash"));
         assert.equals("http://path.com/me.png?query#hash", this.context.img("http://path.com/me.png?query#hash"));
+      },
+      
+      "unresolved relative paths": function() {
+        assert.equals("<script src='unresolvedPath.js'></script>", this.context.js("unresolvedPath.js"));
+        assert.equals("<link href='unresolvedPath.css' rel='stylesheet' media='screen'>", this.context.css("unresolvedPath.css"));
+        assert.equals("unresolvedPath.png", this.context.img("unresolvedPath.png"));
+        
+        assert.equals("<script src='unresolvedPath.js?query#hash'></script>", this.context.js("unresolvedPath.js?query#hash"));
+        assert.equals("<link href='unresolvedPath.css?query#hash' rel='stylesheet' media='screen'>", this.context.css("unresolvedPath.css?query#hash"));
+        assert.equals("unresolvedPath.png?query#hash", this.context.img("unresolvedPath.png?query#hash"));
       }
     }
   },
@@ -159,8 +181,8 @@ buster.testCase("Asset Manager", {
         assert.equals(true, path.existsSync(path.join(tmpDir, "js", "app3-cb248e942f61a08ff6f783b491bcfa4e.js")));
         assert.equals(true, path.existsSync(path.join(tmpDir, "js", "app3-cb248e942f61a08ff6f783b491bcfa4e_raw.js")));
         
-        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "clientManifest-f75a99ac26c50c135c5e28d09cc4220d.js")));
-        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "clientManifest-f75a99ac26c50c135c5e28d09cc4220d_raw.js")));
+        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "clientManifest-a2610211ec9715588c689216c53757e9.js")));
+        assert.equals(true, path.existsSync(path.join(tmpDir, "js", "clientManifest-a2610211ec9715588c689216c53757e9_raw.js")));
         
         assert.equals(true, path.existsSync(path.join(tmpDir, "manifest.json")));
         
@@ -207,10 +229,10 @@ buster.testCase("Asset Manager", {
         builtAssets: tmpDir,
         gzip: false
       }, function(){
-        var filePath = path.join(tmpDir, "css", "appWithUrl-ae0d0be75519249c281ddda1fddb89b8.css");
+        var filePath = path.join(tmpDir, "css", "appWithUrl-29a0e3235c7fab693ba90703c06bfe7d.css");
         assert.equals(true, path.existsSync(filePath));
         var contents = fs.readFileSync(filePath, 'UTF-8');
-        refute.equals(-1, contents.indexOf('/CDNPath/img/arrow2-dd0ecf27272f0daade43058090491241.png'));
+        refute.equals(-1, contents.indexOf('CDNPath/img/arrow2-dd0ecf27272f0daade43058090491241.png'));
         refute.equals(-1, contents.indexOf("url('missingImage.png')"));
         
         done();
